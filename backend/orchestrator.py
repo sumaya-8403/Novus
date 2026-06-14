@@ -9,6 +9,7 @@ from agents.relevance_agent import run_relevance_agent
 from agents.eligibility_agent import run_eligibility_agent
 from agents.proposal_writer import run_proposal_writer
 from agents.compliance_agent import run_compliance_agent
+from band_integration import notify_band_agent
 
 load_dotenv()
 
@@ -17,7 +18,7 @@ agentops.init(api_key=os.getenv("AGENTOPS_API_KEY"))
 def run_novus_pipeline(proposal_text: str) -> dict:
     """
     Main Novus orchestrator - runs all 6 agents in sequence,
-    passing context from each agent to the next.
+    passing context through Band rooms at each stage.
     """
     print("[NOVUS] Starting research intelligence pipeline...")
     print("=" * 60)
@@ -36,6 +37,12 @@ def run_novus_pipeline(proposal_text: str) -> dict:
             "status": "complete",
             "result": intake_result
         }
+        notify_band_agent(
+            "intake",
+            "Intake Analysis",
+            f"Proposal: {proposal_text[:100]}...",
+            f"Title: {intake_result.get('title')} | Domain: {intake_result.get('domain')} | Keywords: {intake_result.get('keywords')}"
+        )
     except Exception as e:
         print(f"[NOVUS] Intake Agent failed: {e}")
         results["stages"]["intake"] = {"status": "failed", "error": str(e)}
@@ -52,6 +59,12 @@ def run_novus_pipeline(proposal_text: str) -> dict:
             "status": "complete",
             "result": duplication_result
         }
+        notify_band_agent(
+            "duplication",
+            "Duplication Analysis",
+            f"Keywords: {intake_result.get('keywords')}",
+            f"Risk: {duplication_result.get('duplicate_risk')} | Papers found: {duplication_result.get('total_papers_searched')} | Recommendation: {duplication_result.get('recommendation')}"
+        )
     except Exception as e:
         print(f"[NOVUS] Duplication Scout failed: {e}")
         results["stages"]["duplication"] = {"status": "failed", "error": str(e)}
@@ -68,6 +81,12 @@ def run_novus_pipeline(proposal_text: str) -> dict:
             "status": "complete",
             "result": relevance_result
         }
+        notify_band_agent(
+            "relevance",
+            "Relevance Scoring",
+            f"Domain: {intake_result.get('domain')} | Risk: {duplication_result.get('duplicate_risk')}",
+            f"Score: {relevance_result.get('overall_score')}/100 | Outlook: {relevance_result.get('funding_outlook')} | Novelty: {relevance_result.get('novelty_score')}"
+        )
     except Exception as e:
         print(f"[NOVUS] Relevance Agent failed: {e}")
         results["stages"]["relevance"] = {"status": "failed", "error": str(e)}
@@ -84,6 +103,12 @@ def run_novus_pipeline(proposal_text: str) -> dict:
             "status": "complete",
             "result": eligibility_result
         }
+        notify_band_agent(
+            "eligibility",
+            "Grant Eligibility",
+            f"Score: {relevance_result.get('overall_score')}/100 | Outlook: {relevance_result.get('funding_outlook')}",
+            f"Eligibility: {eligibility_result.get('overall_eligibility')} | Best match: {eligibility_result.get('best_match')}"
+        )
     except Exception as e:
         print(f"[NOVUS] Eligibility Agent failed: {e}")
         results["stages"]["eligibility"] = {"status": "failed", "error": str(e)}
@@ -105,6 +130,12 @@ def run_novus_pipeline(proposal_text: str) -> dict:
             "status": "complete",
             "result": proposal_draft
         }
+        notify_band_agent(
+            "proposal",
+            "Proposal Writing",
+            f"Best grant: {eligibility_result.get('best_match')}",
+            f"Proposal drafted with {len(proposal_draft.keys())} sections including executive summary, methodology, and timeline"
+        )
     except Exception as e:
         print(f"[NOVUS] Proposal Writer failed: {e}")
         results["stages"]["proposal"] = {"status": "failed", "error": str(e)}
@@ -125,6 +156,12 @@ def run_novus_pipeline(proposal_text: str) -> dict:
             "status": "complete",
             "result": compliance_result
         }
+        notify_band_agent(
+            "compliance",
+            "Compliance Review",
+            f"Target grant: {eligibility_result.get('best_match')}",
+            f"Status: {compliance_result.get('status')} | Score: {compliance_result.get('compliance_score')}/100 | Ready: {compliance_result.get('ready_to_submit')}"
+        )
     except Exception as e:
         print(f"[NOVUS] Compliance Agent failed: {e}")
         results["stages"]["compliance"] = {"status": "failed", "error": str(e)}
