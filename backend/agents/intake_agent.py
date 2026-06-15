@@ -6,8 +6,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 client = OpenAI(
-    api_key=os.getenv("AIML_API_KEY"),
-    base_url="https://api.aimlapi.com/v1"
+    api_key=os.getenv("ANTHROPIC_API_KEY"),
+    base_url="https://api.anthropic.com/v1"
 )
 
 def run_intake_agent(proposal_text: str) -> dict:
@@ -22,7 +22,7 @@ def run_intake_agent(proposal_text: str) -> dict:
     print("[INTAKE AGENT] Analyzing proposal...")
 
     response = client.chat.completions.create(
-        model="claude-sonnet-4-6",
+        model="claude-opus-4-6",
         messages=[
             {
                 "role": "system",

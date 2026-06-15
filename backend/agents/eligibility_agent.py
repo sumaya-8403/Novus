@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 client = OpenAI(
-    api_key=os.getenv("AIML_API_KEY"),
-    base_url="https://api.aimlapi.com/v1"
+    api_key=os.getenv("ANTHROPIC_API_KEY"),
+    base_url="https://api.anthropic.com/v1"
 )
 
 NIH_REPORTER_BASE = "https://api.reporter.nih.gov/v2/projects/search"
@@ -157,7 +157,7 @@ def analyze_eligibility(proposal_info: dict, relevance_result: dict, grants: lis
     nih_text = json.dumps(trimmed_nih)
 
     response = client.chat.completions.create(
-        model="claude-sonnet-4-6",
+        model="claude-opus-4-6",
         messages=[
             {
                 "role": "system",
@@ -267,3 +267,5 @@ if __name__ == "__main__":
     }
     result = run_eligibility_agent(test_proposal_info, test_relevance)
     print(json.dumps(result, indent=2))
+
+    

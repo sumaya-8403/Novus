@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 client = OpenAI(
-    api_key=os.getenv("AIML_API_KEY"),
-    base_url="https://api.aimlapi.com/v1"
+    api_key=os.getenv("ANTHROPIC_API_KEY"),
+    base_url="https://api.anthropic.com/v1"
 )
 
 SEMANTIC_SCHOLAR_BASE = "https://api.semanticscholar.org/graph/v1"
@@ -188,7 +188,7 @@ def analyze_duplicates(proposal_info: dict, papers: list) -> dict:
     ]
 
     response = client.chat.completions.create(
-        model="claude-sonnet-4-6",
+        model="claude-opus-4-6",
         messages=[
             {
                 "role": "system",
